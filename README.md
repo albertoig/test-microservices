@@ -3,7 +3,7 @@ The selected platform will be Google cloud. The reasons are simple, GKE is easy 
 # 2. Orchestration technology
 The selected orchestration container system will be Kubernetes. it's tested for a lot of companies and  ready for production environments.
 # 3. Automation
-I personally like to use Gitlab with its pipeline system. It's a mature tool with a lot of methods to automate monorepo and simple repositories. I'm gonna provide a code example and one diagram to show how i planned this part: 
+I personally like to use Gitlab with its pipeline system. It's a mature tool with a lot of methods to automate [monorepo](https://en.wikipedia.org/wiki/Monorepo) and simple repositories. I'm gonna provide a code example and one diagram to show how i planned this part: 
 ### Pipeline process diagram
 ![Alt Pipelines process](Pipelines.png?raw=true "Pipelines process")
 ### Visual Example(Gitlab)
@@ -14,6 +14,28 @@ I personally like to use Gitlab with its pipeline system. It's a mature tool wit
   1. Terraform example [HERE](terraform.tf).
 
 It's important to mention that the infrastructure in google cloud will be created with Terraform tool to make Infracture as code. That part is very important to replicate the infrastructure in case you needed and don't loose any inforrmation about the real things that you have in your cloud. 
+
+# Rules to improve the pieplines automation in monorepo:
+
+### How to make/add a new feature/refactor/fix in this project
+Each branch should be named like this:
+
+[action]/[module]-[task-id]-[message]
+
++ **action**: The available actions are fix, refactor and feature.
++ **module**: The module is the name of the folder that represent a project inside the mono repository.
++ **task-id**: Represent the task id of the Jira task.
++ **message**: A general message and short that explain the task or a small title.
+
+### Semantic Release
+
+In this project we've implemented Software delivery with total automation, thus avoiding manual intervention and therefore human errors in our product.
+
+Human error can and does occur when carrying out these boring and repetitive tasks manually
+and ultimately does affect the ability to meet deliverables.
+
+All of the automation is made with Gitlab CI technology, taking advantage of all the tools that Gitlab has.
+We separate the automatation in two parts, continuous integration and continuous delivery.
 
 # 4. Testing
 There is a lot of different types of test that can help us to create a secure and efficient code:
