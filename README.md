@@ -8,9 +8,10 @@ I personally like to use Gitlab with its pipeline system. It's a mature tool wit
 ![Alt Pipelines process](Pipelines.png?raw=true "Pipelines process")
 ### Visual Example(Gitlab)
 ![Alt Real example](Real_example.png?raw=true "Real example")
+### Code examples
   1. Gitlab configuration pipeline [HERE](.gitlab-ci.yml).
-  1. Dockerfile example [HERE](terraform.tf).
-  1. Terraform example HERE.
+  1. Dockerfile example [HERE](Dockerfile).
+  1. Terraform example [HERE](terraform.tf).
 
 It's important to mention that the infrastructure in google cloud will be created with Terraform tool to make Infracture as code. That part is very important to replicate the infrastructure in case you needed and don't loose any inforrmation about the real things that you have in your cloud. 
 
