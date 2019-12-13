@@ -8,7 +8,7 @@ I personally like to use Gitlab with its pipeline system. It's a mature tool wit
 ![Alt Pipelines process](Pipelines.png?raw=true "Pipelines process")
 ### Visual Example(Gitlab)
 ![Alt Real example](Real_example.png?raw=true "Real example")
-  1. Gitlab configuration pipeline HERE.
+  1. Gitlab configuration pipeline [a HERE](.gitlab-ci.yml).
   1. Dockerfile example HERE.
   1. Terraform example HERE.
 
