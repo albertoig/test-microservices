@@ -13,9 +13,9 @@ I personally like to use Gitlab with its pipeline system. It's a mature tool wit
   1. Dockerfile example [HERE](Dockerfile).
   1. Terraform example [HERE](terraform.tf).
 
-It's important to mention that the infrastructure in google cloud will be created with Terraform tool to make Infracture as code. That part is very important to replicate the infrastructure in case you needed and don't loose any inforrmation about the real things that you have in your cloud. 
+It's important to mention that the infrastructure in google cloud will be created with Terraform tool to make Infracture as code. That part is very important to replicate the infrastructure in case you needed and don't loose any information about the real things that you have in your cloud. 
 
-# Rules to improve the pieplines automation in monorepo:
+# Rules to improve the pipelines automation in monorepo:
 
 ### How to make/add a new feature/refactor/fix in this project
 Each branch should be named like this:
@@ -23,9 +23,9 @@ Each branch should be named like this:
 [action]/[module]-[task-id]-[message]
 
 + **action**: The available actions are fix, refactor and feature.
-+ **module**: The module is the name of the folder that represent a project inside the mono repository.
-+ **task-id**: Represent the task id of the Jira task.
-+ **message**: A general message and short that explain the task or a small title.
++ **module**: The module is the name of the folder that represents a project inside the mono repository.
++ **task-id**: Represents the task id of the Jira task.
++ **message**: A general message and short that explains the task or a small title.
 
 ### Semantic Release
 
@@ -35,14 +35,14 @@ Human error can and does occur when carrying out these boring and repetitive tas
 and ultimately does affect the ability to meet deliverables.
 
 All of the automation is made with Gitlab CI technology, taking advantage of all the tools that Gitlab has.
-We separate the automatation in two parts, continuous integration and continuous delivery.
+We separate the automation in two parts, continuous integration and continuous delivery.
 
 # 4. Testing
 There is a lot of different types of test that can help us to create a secure and efficient code:
-  1. E2E: this testing will be implementted to check if all microservices works corretly between each other.
-  1. ATDD: This testing will be use to test the isolated funcionality of a concrete micro service definied by the PM.
-  1. Unit test: This testing will be use to test isolated units of code and reduce the complexity of the code.
+  1. E2E: this testing will be implemented to check if all microservices works correctly between each other.
+  1. ATDD: This testing will be used to test the isolated functionality of a concrete micro service definied by the PM.
+  1. Unit test: This testing will be used to test isolated units of code and reduce the complexity of the code.
 
 # 5. Monitoring
-For monitoring the kubernetes platform and their pods/containers, a good tool is Prometheus. I personally like it because can be connected to gitlab with a private account or use Grafana, there is more options of course. Also i prefer to use Sentry to have an error logs and history, that also can be connected to tools like Gitlab/github/(others) to create issues dirrectly in the platform.
+For monitoring the kubernetes platform and their pods/containers, a good tool is Prometheus. I personally like it because can be connected to gitlab with a private account or use Grafana, there are more options of course. Also, I prefer to use Sentry to have error logs and history, that also can be connected to tools like Gitlab/github/(others) to create issues directly in the platform.
 
