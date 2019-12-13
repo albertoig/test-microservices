@@ -1,0 +1,229 @@
+stages:
+  - install
+  - validation
+  - test
+  - infrastructure
+  - reports
+  - release
+  - build
+  - deploy
+
+#
+# Install
+#
+microservice-install:
+  stage: install
+  image: node:11
+  script:
+    - npm install --prefix microservice
+  only:
+    refs:
+      - /^*microservice-.*$/
+      - develop
+      - master
+  except:
+    - tags
+  cache:
+    policy: push
+    key: "microservice-install-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - microservice/node_modules
+
+#
+# Validation
+#
+microservice-validation:
+  stage: validation
+  image: node:11
+  script:
+    - npm run validator:lint:js --prefix microservice
+  only:
+    refs:
+      - /^*microservice-.*$/
+      - develop
+      - master
+  except:
+    - tags
+  cache:
+    policy: push
+    key: "microservice-install-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - microservice/node_modules
+  dependencies:
+    - microservice-install
+
+#
+# test
+#
+microservice-unittest:
+  stage: test
+  image: node:11
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  script:
+    - npm run test:unit:coverage --prefix microservice
+  only:
+    refs:
+      - /^*microservice-.*$/
+      - develop
+      - master
+  except:
+    - tags
+  cache:
+    policy: pull
+    key: "microservice-install-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - microservice/node_modules
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+    expire_in: 1 week
+    paths:
+      - microservice/reports-test/test-reporter.xml
+      - microservice/coverage/lcov.info
+  dependencies:
+    - microservice-install
+
+microservice-sonar-reports:
+  stage: reports
+  image: node:11
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  script:
+    - npm run sonar-scanner --prefix microservice -- -Dsonar.projectVersion=${CI_PIPELINE_ID} -Dsonar.projectKey=microservice-public -Dsonar.tests=src/__tests__ -Dsonar.test.inclusions=node_modules/**,coverage/**,public/**,build/**,**/__tests__/** -Dsonar.sources=src -Dsonar.host.url=${TF_VAR_DNS_COMPLETE_PROTOCOL_SONAR} -Dsonar.login=${SONAR_MICROSERVICE_LOGIN} -Dsonar.testExecutionReportPaths=reports-test/test-reporter.xml -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+  only:
+    refs:
+      - /^*microservice-.*$/
+      - develop
+      - master
+  except:
+    - tags
+  cache:
+    policy: pull
+    key: "microservice-install-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - microservice/node_modules
+  dependencies:
+    - microservice-install
+    - microservice-unittest
+
+microservice-atdd:
+  stage: test
+  image: alekzonder/puppeteer:latest
+  script:
+    - npm run test:acceptance:ci --prefix microservice
+  only:
+    refs:
+      - /^*microservice-.*$/
+      - develop
+      - master
+  except:
+    - tags
+  cache:
+    policy: pull
+    key: "microservice-install-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - microservice/node_modules
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+    expire_in: 1 week
+    paths:
+      - microservice/results-cucumber.json
+
+release-microservice:
+  stage: release
+  image: node:8
+  before_script:
+    - npm install --prefix microservice
+  script:
+    - cd microservice && npx semantic-release -e semantic-release-monorepo
+  only:
+    - master
+  dependencies:
+    - microservice-install
+
+#
+# Build && Terraform
+#
+microservice-build-docker-dev:
+  stage: build
+  image:
+    name: $IMAGE_NAME
+    entrypoint: [""]
+  variables:
+    DOCKER_CONFIG: /kaniko/.docker
+  script:
+    - export VERSION=$CI_PIPELINE_ID
+    - export VERSION_NOPREFIX=$CI_PIPELINE_ID
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - cp -R /kanika/* /kaniko
+    - /kaniko/executor --context dir://$(pwd)
+      --dockerfile $(pwd)/microservice/dockerfiles/production/Dockerfile
+      --destination ${MICROSERVICE_IMAGE_NAME}:${VERSION_NOPREFIX}
+  only:
+    - develop
+  dependencies: []
+
+microservice-build-docker-pro:
+  stage: build
+  image:
+    name: $IMAGE_NAME
+    entrypoint: [""]
+  variables:
+    DOCKER_CONFIG: /kaniko/.docker
+  script:
+    - export VERSION=$(git tag | sort --version-sort | grep -v microservice-admin | grep microservice | tail -n -1)
+    - export VERSION_NOPREFIX=${VERSION#"microservice-"}
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - cp -R /kanika/* /kaniko
+    - /kaniko/executor --context dir://$(pwd)
+      --dockerfile $(pwd)/microservice/dockerfiles/production/Dockerfile
+      --destination ${MICROSERVICE_IMAGE_NAME}:${VERSION_NOPREFIX}
+  only:
+    - master
+  dependencies: []
+  
+  
+#
+# Validation
+#
+terraform-microservice-validation:
+  stage: validation
+  image:
+    name: $IMAGE_NAME_TERRAFORM
+    entrypoint: ["/bin/sh", "-c"]
+  before_script:
+    - echo $TF_VAR_CREDENTIALS > $GOOGLE_CREDENTIALS
+  script:
+    - terraform init deploy/microservice
+    - terraform validate deploy/microservice
+  dependencies: []
+  only:
+    refs:
+      - /^*microservice-.*$/
+      - develop
+      - master
+  except:
+    - tags
+
+#
+# Infrastructure
+#
+terraform-microservice-infrastructure:
+  stage: infrastructure
+  image:
+    name: $IMAGE_NAME_TERRAFORM
+    entrypoint: ["/bin/sh", "-c"]
+  before_script:
+    - echo $TF_VAR_CREDENTIALS > $GOOGLE_CREDENTIALS
+  script:
+    - cd deploy/appengine
+    - terraform init
+    - terraform workspace select $CI_COMMIT_REF_NAME || terraform workspace new $CI_COMMIT_REF_NAME
+    - terraform plan
+    - terraform apply -auto-approve
+    - terraform output -json >> gcloud-terraform-output.json
+  only:
+    - develop
+    - master
+  dependencies: []
+
