@@ -21,7 +21,7 @@ variable "PROJECT_NAME" {
 
 resource "random_id" "id" {
   byte_length = 4
-  prefix = "${var.NEXTINIT_PROJECT_NAME}-"
+  prefix = "${var.PROJECT_NAME}-"
 }
 
 resource "google_project" "project" {
@@ -33,10 +33,6 @@ resource "google_project" "project" {
 
 output "project_name" {
   value = "${google_project.project.name}"
-}
-
-output "project_dns" {
-  value = "${google_app_engine_application.app.default_hostname}"
 }
 
 output "project_id" {
